@@ -21,7 +21,6 @@ function App() {
     let name1Arr = n1.toLowerCase().replace(/\s/g, "").split("");
     let name2Arr = n2.toLowerCase().replace(/\s/g, "").split("");
 
-    // Remove common letters
     name1Arr.forEach((char) => {
       const index = name2Arr.indexOf(char);
       if (index !== -1) {
@@ -45,14 +44,34 @@ function App() {
     return flamesArr[0];
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name1.trim() || !name2.trim()) {
       alert("Please enter both names.");
       return;
     }
+
     const res = calculateFlames(name1, name2);
     setResult(res);
+
+    // ✅ Send data to Google Sheet
+    try {
+      await fetch("https://script.google.com/macros/s/AKfycby4LFLwPqhyL9qducwp2nKD8D2G5x8n-hxnhMVGXewmY71t87Tjd6942owuK-fhKjDniQ/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name1,
+          name2,
+          result: res,
+          timestamp: new Date().toLocaleString(),
+        }),
+      });
+      console.log("Data sent to Google Sheet");
+    } catch (err) {
+      console.error("Failed to send data:", err);
+    }
   };
 
   return (
@@ -86,8 +105,6 @@ function App() {
           <p className="result-quote">{flamesQuotes[result]}</p>
         </div>
       )}
-
-     
     </div>
   );
 }
